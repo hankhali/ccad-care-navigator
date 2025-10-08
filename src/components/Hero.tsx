@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Activity, Clock, Shield, Smartphone } from "lucide-react";
+import { ArrowRight, Activity, Clock, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
-  const scrollToDemo = () => {
-    document.getElementById("symptom-checker")?.scrollIntoView({ behavior: "smooth" });
-  };
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -62,19 +61,11 @@ export const Hero = () => {
             <Button
               size="lg"
               variant="hero"
-              onClick={scrollToDemo}
+              onClick={() => navigate("/auth")}
               className="text-lg px-8 py-6 h-auto"
             >
-              Try Symptom Checker
+              Get Started
               <ArrowRight className="w-5 h-5" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-6 h-auto bg-card/80 backdrop-blur-sm border-primary-foreground/20 text-primary-foreground hover:bg-card hover:text-foreground"
-            >
-              <Smartphone className="w-5 h-5" />
-              View Mobile App
             </Button>
           </div>
 
