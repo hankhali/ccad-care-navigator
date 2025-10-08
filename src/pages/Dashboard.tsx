@@ -1,70 +1,78 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { SymptomChecker } from "@/components/SymptomChecker";
-import { Features } from "@/components/Features";
-import { Impact } from "@/components/Impact";
+import UserHome from "./UserHome";
 import { Dashboard as DashboardComponent } from "@/components/Dashboard";
-import { Button } from "@/components/ui/button";
-import { LogOut, Activity } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
+
+function Overview() {
+  return <DashboardComponent />;
+}
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
 
+  // Role bypass for static/demo mode: if localStorage.role === 'user' treat as signed-in user
   useEffect(() => {
-    // Check for existing session
+    const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
+    console.log("Dashboard mount, role=", role);
+    if (role === "user") {
+      const fake = { id: "user" } as unknown as User;
+      console.log("Dashboard: setting fake user", fake);
+      setUser(fake);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        navigate("/auth");
-      }
+      if (session?.user) setUser(session.user);
+      else navigate("/auth");
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        navigate("/auth");
-      }
+      if (session?.user) setUser(session.user);
+      else navigate("/auth");
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSignOut = async () => {
+    if (role === "user") {
+      if (typeof window !== "undefined") localStorage.removeItem("role");
+      navigate("/auth");
+      return;
+    }
     await supabase.auth.signOut();
     navigate("/auth");
   };
 
-  if (!user) {
-    return null;
+  if (!user)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium">Loading dashboard...</div>
+          <div className="text-sm text-muted-foreground">Checking session and permissions</div>
+        </div>
+      </div>
+    );
+
+  // If running in frontend-only user mode, render the user-facing UserHome
+  if (role === "user") {
+    return (
+      <AppLayout userName={user.email ?? user.id} onSignOut={handleSignOut}>
+        <UserHome />
+      </AppLayout>
+    );
   }
 
   return (
-    <main className="min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-primary/10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="w-6 h-6 text-primary" />
-            <span className="font-semibold text-lg">Cleveland Clinic AI Triage</span>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <SymptomChecker />
-      <Features />
-      <Impact />
-      <DashboardComponent />
-    </main>
+    <AppLayout userName={user.email ?? user.id} onSignOut={handleSignOut}>
+      <Routes>
+        <Route index element={<Overview />} />
+      </Routes>
+    </AppLayout>
   );
 }
