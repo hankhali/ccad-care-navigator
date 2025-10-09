@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 // AppLayout is provided by the parent `Dashboard` route; do not wrap here to avoid duplicate layout
-import { getTriageHistory, TriageEntry, pushTriage, getAppointments, saveAppointment, getUaeUser, setUaeUser, getCaregivers, addCaregiver, predictRiskFromTriage, getRecommendationsFor, analyzeRepeatER, getProgression, pushProgression } from "@/lib/utils";
+import { getTriageHistory, TriageEntry, pushTriage, getAppointments, saveAppointment, getUaeUser, setUaeUser, getCaregivers, addCaregiver, predictRiskFromTriage, getRecommendationsFor, analyzeRepeatER, getProgression, pushProgression, autoBookAppointment, verifyInsuranceAsync, getMedicalRecords, saveMedicalRecord, getMedications, checkAllergies, getNotifications } from "@/lib/utils";
+import { toast } from '@/components/ui/use-toast'
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import TriageForm from "@/components/TriageForm";
@@ -18,27 +19,35 @@ export default function UserHome() {
   const [lastRisk, setLastRisk] = useState<{ riskScore: number; label: string } | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [erAnalytics, setErAnalytics] = useState<{ erCount: number; recentERIds: string[] } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [medicalRecords, setMedicalRecords] = useState<any[]>(getMedicalRecords());
+  const [medications, setMedications] = useState<any[]>(getMedications());
+  const [allergyList, setAllergyList] = useState<string[]>([]);
+  const [notifications, setNotifications] = useState<any[]>(getNotifications());
   const navigate = useNavigate();
 
   useEffect(() => {
   setHistory(getTriageHistory());
   setUae(getUaeUser());
-    function onTriage() { setHistory(getTriageHistory()) }
-    function onAppt() { /* could refresh appts if shown */ }
-    window.addEventListener('triage:created', onTriage as any)
-    window.addEventListener('appointment:created', onAppt as any)
+  function onTriage() { setHistory(getTriageHistory()) }
+  function onAppt() { setAppointments(getAppointments()); setNotifications(getNotifications()) }
+  window.addEventListener('triage:created', onTriage)
+  window.addEventListener('appointment:created', onAppt)
   // also notify caregivers: simple mock — call set to refresh
-  function onNotify() { setCaregivers(getCaregivers()) }
-  window.addEventListener('triage:created', onNotify as any)
+  function onNotify() { setCaregivers(getCaregivers()); setNotifications(getNotifications()) }
+  window.addEventListener('triage:created', onNotify)
     function onOpen() { setShowTriage(true) }
     window.addEventListener('open:triage', onOpen as any)
   setAppointments(getAppointments())
   setErAnalytics(analyzeRepeatER())
+    function onNotif() { setNotifications(getNotifications()) }
+    window.addEventListener('notification:created', onNotif as any)
     return () => {
       window.removeEventListener('triage:created', onTriage as any)
-      window.removeEventListener('appointment:created', onAppt as any)
+  window.removeEventListener('appointment:created', onAppt)
       window.removeEventListener('open:triage', onOpen as any)
-      window.removeEventListener('triage:created', onNotify as any)
+  window.removeEventListener('triage:created', onNotify)
+      window.removeEventListener('notification:created', onNotif as any)
     }
   }, []);
 
@@ -60,6 +69,44 @@ export default function UserHome() {
     setRecommendations(getRecommendationsFor(entry as any));
     setErAnalytics(analyzeRepeatER());
     alert('Demo triage saved — check Last Triage');
+  }
+
+  async function handleVerifyInsurance() {
+    const u = getUaeUser();
+    if (!u?.emiratesId) return alert('No Emirates ID on file — verify via UAE Pass first');
+    setVerifying(true);
+    const res = await verifyInsuranceAsync(u.emiratesId);
+    setVerifying(false);
+    toast({ title: `Insurance: ${res.provider}`, description: `${res.status}` })
+  }
+
+  function handleAutoBook() {
+    const a = autoBookAppointment(['General Practice']);
+    setAppointments(getAppointments());
+    toast({ title: 'Auto-booked', description: `${a.specialty} at ${new Date(a.time).toLocaleString()}` })
+  }
+
+  function handleAddMedical(note: string) {
+    const r = { id: String(Date.now()), date: new Date().toISOString(), note };
+    saveMedicalRecord(r as any);
+    setMedicalRecords(getMedicalRecords());
+    toast({ title: 'Medical note saved' })
+  }
+
+  function runAllergyChecks() {
+    const list = getMedications();
+    const conflicts = list.filter(m => checkAllergies(m, allergyList));
+    if (conflicts.length) toast({ title: 'Allergy conflicts', description: conflicts.map(c => c.name).join(', ') }); else toast({ title: 'Allergy check', description: 'No conflicts found' });
+  }
+
+  // download medical records JSON
+  function downloadMedicalRecords() {
+    const data = JSON.stringify(getMedicalRecords(), null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'medical-records.json'; a.click(); URL.revokeObjectURL(url);
+    toast({ title: 'Download started', description: 'Medical records JSON' });
   }
 
   function handleUAE() {
@@ -179,6 +226,20 @@ export default function UserHome() {
                     <div className="font-medium">{a.specialty} • {new Date(a.time).toLocaleString()}</div>
                     <div className="text-xs text-muted-foreground">{a.location ?? 'Demo Clinic'} • {a.status}</div>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 bg-card rounded border">
+            <h3 className="text-lg font-semibold">Notifications</h3>
+            <div className="mt-2 space-y-2">
+              {notifications.length === 0 && <div className="text-sm text-muted-foreground">No notifications</div>}
+              {notifications.map((n) => (
+                <div key={n.id} className="p-2 border rounded">
+                  <div className="font-medium">{n.title}</div>
+                  <div className="text-xs text-muted-foreground">{n.message}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(n.ts).toLocaleString()}</div>
                 </div>
               ))}
             </div>

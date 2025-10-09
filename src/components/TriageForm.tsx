@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { pushTriage } from "@/lib/utils";
+import { pushTriage, notifyCaregiversForEvent } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 
 interface TriageFormProps {
   onClose?: () => void;
@@ -41,11 +42,12 @@ export default function TriageForm({ onClose }: TriageFormProps) {
       confidence: classified.confidence,
       raw: data,
     };
-    pushTriage(entry as any);
-    try { window.dispatchEvent(new CustomEvent('triage:created', { detail: entry })); } catch {}
-    if (onClose) onClose();
-    // use small in-UI notice instead of alert in production; for now keep simple
-    alert(`Triage: ${entry.result} — Confidence ${entry.confidence}%`);
+  pushTriage(entry as any);
+  try { window.dispatchEvent(new CustomEvent('triage:created', { detail: entry })); } catch {}
+  // push notifications to caregivers
+  try { notifyCaregiversForEvent('triage', entry); } catch {}
+  if (onClose) onClose();
+  toast({ title: `Triage: ${entry.result}`, description: `Confidence ${entry.confidence}%` });
   }
 
   return (

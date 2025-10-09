@@ -71,6 +71,35 @@ export function verifyInsurance(nationalId: string): { provider: string; status:
   return res;
 }
 
+// Async mock for real-time eligibility check (returns a promise)
+export function verifyInsuranceAsync(nationalId: string): Promise<{ provider: string; status: 'verified' | 'unverified'; details?: string }> {
+  return new Promise((res) => {
+    setTimeout(() => {
+      const base = verifyInsurance(nationalId);
+      res({ provider: base.provider, status: base.status, details: `Mock eligibility check for ${nationalId}` });
+    }, 600);
+  });
+}
+
+// Auto-booking: pick earliest 'time' (now + random delta) and create appointment
+export function autoBookAppointment(preferredSpecialties: string[] = ['General Practice']): Appointment {
+  const specialty = preferredSpecialties[0] || 'General Practice';
+  const when = new Date(Date.now() + (Math.floor(Math.random() * 5) + 1) * 3600 * 1000).toISOString();
+  const a: Appointment = { id: String(Date.now()), specialty, time: when, location: 'Auto Clinic', status: 'confirmed', queuePosition: 1 };
+  saveAppointment(a);
+  return a;
+}
+
+// Medical records (mocked) - small CRUD
+export type MedicalRecord = { id: string; date: string; note: string; type?: string };
+export function getMedicalRecords(): MedicalRecord[] { return safeParse('medical_records') || [] }
+export function saveMedicalRecord(r: MedicalRecord) { const cur = getMedicalRecords(); cur.unshift(r); try { localStorage.setItem('medical_records', JSON.stringify(cur.slice(0,200))) } catch {} }
+
+// Pharmacy helpers
+export type Medication = { id: string; name: string; dose?: string; allergies?: string[] };
+export function getMedications(): Medication[] { return safeParse('medications') || [{ id: 'm1', name: 'Paracetamol', dose: '500mg', allergies: [] }] }
+export function checkAllergies(med: Medication, allergies: string[] = []): boolean { return (med.allergies || []).some(a => allergies.includes(a)) }
+
 export type Caregiver = { id: string; name: string; phone?: string; relation?: string };
 export function getCaregivers(): Caregiver[] { return safeParse('caregivers') || [] }
 export function addCaregiver(c: Caregiver) { const cur = getCaregivers(); cur.unshift(c); try { localStorage.setItem('caregivers', JSON.stringify(cur.slice(0,50))) } catch {} }
@@ -82,6 +111,26 @@ export function sendSmsFallback(phone: string, message: string) {
     raw.unshift({ id: String(Date.now()), phone, message, ts: new Date().toISOString() });
     localStorage.setItem('sms_outbox', JSON.stringify(raw.slice(0, 200)));
   } catch {}
+}
+
+// Notifications (mock)
+export type Notification = { id: string; ts: string; to: string; title: string; message: string; read?: boolean };
+export function getNotifications(): Notification[] { return safeParse('notifications') || [] }
+export function pushNotification(n: Notification) { try { const cur = getNotifications(); cur.unshift(n); localStorage.setItem('notifications', JSON.stringify(cur.slice(0,200))); } catch {} }
+
+// notify all caregivers about an event
+export function notifyCaregiversForEvent(eventType: 'triage'|'appointment', detail: any) {
+  const caregivers = getCaregivers();
+  caregivers.forEach((c) => {
+    const n: Notification = { id: String(Date.now()) + ':' + c.id, ts: new Date().toISOString(), to: c.id, title: `Notification: ${eventType}`, message: `${detail.result || detail.specialty || ''} — ${detail.summary || detail.time || ''}`, read: false };
+    pushNotification(n);
+  });
+  // also create a notification for the current user (frontend demo)
+  try {
+    const userNotif: Notification = { id: String(Date.now()) + ':user', ts: new Date().toISOString(), to: 'user', title: `Notification: ${eventType}`, message: `${detail.result || detail.specialty || ''} — ${detail.summary || detail.time || ''}`, read: false };
+    pushNotification(userNotif);
+  } catch {}
+  try { window.dispatchEvent(new CustomEvent('notification:created')) } catch {}
 }
 
 // --- Frontend-only mock AI helpers (placeholders for real ML integration) ---
