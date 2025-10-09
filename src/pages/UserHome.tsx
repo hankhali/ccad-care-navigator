@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
 // AppLayout is provided by the parent `Dashboard` route; do not wrap here to avoid duplicate layout
-import { getTriageHistory, TriageEntry, pushTriage, getAppointments, saveAppointment, getUaeUser, setUaeUser, getCaregivers, addCaregiver, predictRiskFromTriage, getRecommendationsFor, analyzeRepeatER, getProgression, pushProgression, autoBookAppointment, verifyInsuranceAsync, getMedicalRecords, saveMedicalRecord, getMedications, checkAllergies, getNotifications } from "@/lib/utils";
-import { toast } from '@/components/ui/use-toast'
+import { getTriageHistory, TriageEntry, pushTriage, getAppointments, saveAppointment, getUaeUser, setUaeUser, getCaregivers, addCaregiver, predictRiskFromTriage, getRecommendationsFor, analyzeRepeatER, getProgression, pushProgression } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import TriageForm from "@/components/TriageForm";
+import EnhancedTriageForm from "@/components/EnhancedTriageForm";
+import FollowUpReminders from "@/components/FollowUpReminders";
+import WearableSync from "@/components/WearableSync";
+import PharmacyIntegration from "@/components/PharmacyIntegration";
+import InsuranceClaims from "@/components/InsuranceClaims";
+import Telehealth from "@/components/Telehealth";
+import SmartNotifications from "@/components/SmartNotifications";
+import BottomNavigation from "@/components/BottomNavigation";
 import BookingModal from "@/components/BookingModal";
 import ERWait from "@/components/ERWait";
+import "./UserHome.css";
 
 export default function UserHome() {
   const [history, setHistory] = useState<TriageEntry[]>([]);
   const [uae, setUae] = useState<any>(null);
   const [showTriage, setShowTriage] = useState(false);
+  const [showEnhancedTriage, setShowEnhancedTriage] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [caregivers, setCaregivers] = useState<any[]>(getCaregivers());
@@ -19,35 +28,36 @@ export default function UserHome() {
   const [lastRisk, setLastRisk] = useState<{ riskScore: number; label: string } | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [erAnalytics, setErAnalytics] = useState<{ erCount: number; recentERIds: string[] } | null>(null);
-  const [verifying, setVerifying] = useState(false);
-  const [medicalRecords, setMedicalRecords] = useState<any[]>(getMedicalRecords());
-  const [medications, setMedications] = useState<any[]>(getMedications());
-  const [allergyList, setAllergyList] = useState<string[]>([]);
-  const [notifications, setNotifications] = useState<any[]>(getNotifications());
+  const [activeTab, setActiveTab] = useState('home');
   const navigate = useNavigate();
+
+  const getSeverityColor = (severity: number) => {
+    const colors = [
+      "#10b981", "#22c55e", "#84cc16", "#eab308", "#f59e0b",
+      "#f97316", "#ef4444", "#dc2626", "#b91c1c", "#7f1d1d"
+    ];
+    return colors[severity - 1] || "#6b7280";
+  };
 
   useEffect(() => {
   setHistory(getTriageHistory());
   setUae(getUaeUser());
-  function onTriage() { setHistory(getTriageHistory()) }
-  function onAppt() { setAppointments(getAppointments()); setNotifications(getNotifications()) }
-  window.addEventListener('triage:created', onTriage)
-  window.addEventListener('appointment:created', onAppt)
+    function onTriage() { setHistory(getTriageHistory()) }
+    function onAppt() { /* could refresh appts if shown */ }
+    window.addEventListener('triage:created', onTriage as any)
+    window.addEventListener('appointment:created', onAppt as any)
   // also notify caregivers: simple mock — call set to refresh
-  function onNotify() { setCaregivers(getCaregivers()); setNotifications(getNotifications()) }
-  window.addEventListener('triage:created', onNotify)
+  function onNotify() { setCaregivers(getCaregivers()) }
+  window.addEventListener('triage:created', onNotify as any)
     function onOpen() { setShowTriage(true) }
     window.addEventListener('open:triage', onOpen as any)
   setAppointments(getAppointments())
   setErAnalytics(analyzeRepeatER())
-    function onNotif() { setNotifications(getNotifications()) }
-    window.addEventListener('notification:created', onNotif as any)
     return () => {
       window.removeEventListener('triage:created', onTriage as any)
-  window.removeEventListener('appointment:created', onAppt)
+      window.removeEventListener('appointment:created', onAppt as any)
       window.removeEventListener('open:triage', onOpen as any)
-  window.removeEventListener('triage:created', onNotify)
-      window.removeEventListener('notification:created', onNotif as any)
+      window.removeEventListener('triage:created', onNotify as any)
     }
   }, []);
 
@@ -71,44 +81,6 @@ export default function UserHome() {
     alert('Demo triage saved — check Last Triage');
   }
 
-  async function handleVerifyInsurance() {
-    const u = getUaeUser();
-    if (!u?.emiratesId) return alert('No Emirates ID on file — verify via UAE Pass first');
-    setVerifying(true);
-    const res = await verifyInsuranceAsync(u.emiratesId);
-    setVerifying(false);
-    toast({ title: `Insurance: ${res.provider}`, description: `${res.status}` })
-  }
-
-  function handleAutoBook() {
-    const a = autoBookAppointment(['General Practice']);
-    setAppointments(getAppointments());
-    toast({ title: 'Auto-booked', description: `${a.specialty} at ${new Date(a.time).toLocaleString()}` })
-  }
-
-  function handleAddMedical(note: string) {
-    const r = { id: String(Date.now()), date: new Date().toISOString(), note };
-    saveMedicalRecord(r as any);
-    setMedicalRecords(getMedicalRecords());
-    toast({ title: 'Medical note saved' })
-  }
-
-  function runAllergyChecks() {
-    const list = getMedications();
-    const conflicts = list.filter(m => checkAllergies(m, allergyList));
-    if (conflicts.length) toast({ title: 'Allergy conflicts', description: conflicts.map(c => c.name).join(', ') }); else toast({ title: 'Allergy check', description: 'No conflicts found' });
-  }
-
-  // download medical records JSON
-  function downloadMedicalRecords() {
-    const data = JSON.stringify(getMedicalRecords(), null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'medical-records.json'; a.click(); URL.revokeObjectURL(url);
-    toast({ title: 'Download started', description: 'Medical records JSON' });
-  }
-
   function handleUAE() {
     const mock = { name: "Demo User", emiratesId: "784-1987-1234567-1", verifiedAt: new Date().toISOString() };
     setUae(mock);
@@ -116,137 +88,255 @@ export default function UserHome() {
     window.location.reload();
   }
 
-  return (
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return renderHomeContent();
+      case 'history':
+        return renderHistoryContent();
+      case 'health':
+        return <WearableSync />;
+      case 'care':
+        return renderCareContent();
+      case 'notifications':
+        return <SmartNotifications />;
+      case 'pharmacy':
+        return <PharmacyIntegration />;
+      case 'telehealth':
+        return <Telehealth />;
+      case 'insurance':
+        return <InsuranceClaims />;
+      default:
+        return renderHomeContent();
+    }
+  };
+
+  const renderHomeContent = () => (
     <>
-      <section className="py-12">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Welcome{uae?.name ? `, ${uae.name}` : ''}</h1>
-              <p className="text-sm text-muted-foreground">Start a symptom check or view your recent triage results</p>
+      {/* Hero Section - Problem Statement Focus */}
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">ER Quick</h1>
+          <p className="hero-subtitle">
+            Get instant health recommendations and know where to seek care
+          </p>
+        </div>
+      </div>
+
+      {/* Main Symptom Checker CTA */}
+      <div className="symptom-checker-section">
+        <div className="checker-card">
+          <div className="checker-icon">🏥</div>
+          <h2>Start Your Health Assessment</h2>
+          <p>Get instant, AI-powered recommendations for your symptoms</p>
+          <button 
+            className="primary-cta-btn" 
+            onClick={() => setShowEnhancedTriage(true)}
+          >
+            Begin Symptom Check
+          </button>
+        </div>
+      </div>
+
+      {/* Current ER Status */}
+      <div className="er-status-section">
+        <div className="er-status-card">
+          <div className="er-status-header">
+            <h3>Current ER Status</h3>
+            <div className="status-indicator busy">Busy</div>
+          </div>
+          <div className="er-metrics">
+            <div className="metric">
+              <span className="metric-value">14 min</span>
+              <span className="metric-label">Current Wait Time</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Button onClick={() => setShowTriage(true)}>Start Symptom Check</Button>
-              <Button variant="outline" onClick={handleUAE}>{uae ? 'UAE Pass verified' : 'UAE Pass (Demo verify)'}</Button>
+            <div className="metric">
+              <span className="metric-value">23</span>
+              <span className="metric-label">Patients Waiting</span>
+            </div>
+            <div className="metric">
+              <span className="metric-value">7</span>
+              <span className="metric-label">Available Beds</span>
             </div>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-4 bg-card rounded border">
-              <h3 className="text-lg font-semibold">Last Triage</h3>
-              {history.length === 0 && <p className="text-sm text-muted-foreground mt-2">No triage found. Start the symptom checker.</p>}
-              {history.length > 0 && (
-                <div className="mt-2">
-                  <div className="p-3 bg-white rounded border">
-                    <div className="font-medium">{history[0].result} — {history[0].summary}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(history[0].timestamp).toLocaleString()} • Confidence {history[0].confidence}%</div>
-                  </div>
-                  <div className="mt-3">
-                    {lastRisk && (
-                      <div className="p-2 rounded bg-yellow-50 border">Predicted risk: <strong>{lastRisk.riskScore}</strong> ({lastRisk.label})</div>
-                    )}
-                    {recommendations.length > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-medium">Recommendations</h4>
-                        <ul className="list-disc ml-5 text-sm">
-                          {recommendations.map((r, i) => <li key={i}>{r}</li>)}
-                        </ul>
-                      </div>
-                    )}
-                    <div className="mt-2 text-xs text-muted-foreground">ML hints: {JSON.stringify({})}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {erAnalytics && (
-              <div className="p-4 bg-card rounded border">
-                <h3 className="text-lg font-semibold">Analytics</h3>
-                <div className="mt-2 text-sm">Repeat ER visits: <strong>{erAnalytics.erCount}</strong></div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div className="p-4 bg-card rounded border">
-                <h3 className="text-lg font-semibold">Quick Actions</h3>
-                <div className="mt-3 flex flex-col gap-2">
-                  <Button onClick={() => navigate('/dashboard')}>View Dashboard</Button>
-                  <Button variant="outline" onClick={handleStart}>Run Symptom Check</Button>
-                  <Button variant="ghost" onClick={() => setShowBooking(true)}>Book Demo Appointment</Button>
-                </div>
-              </div>
-
-              <ERWait />
-            </div>
+          <div className="er-recommendation">
+            💡 Consider urgent care or telehealth for non-emergency symptoms
           </div>
+        </div>
+      </div>
 
-          <div className="p-4 bg-card rounded border">
-            <h3 className="text-lg font-semibold">Triage History</h3>
-            <div className="mt-2 space-y-2">
-              {history.length === 0 && <div className="text-sm text-muted-foreground">No history yet</div>}
-              {history.map((h) => (
-                <div key={h.id} className="p-2 border rounded flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{h.result} • {h.summary}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(h.timestamp).toLocaleString()} • Confidence {h.confidence}%</div>
-                  </div>
-                  <div>
-                    <Button variant="outline" onClick={() => { const entry = { id: String(Date.now()), timestamp: new Date().toISOString(), summary: h.summary, result: h.result, confidence: h.confidence, raw: h.raw }; pushTriage(entry); setHistory(getTriageHistory()); alert('Re-run saved'); }}>Re-run</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-4 bg-card rounded border">
-            <h3 className="text-lg font-semibold">Caregivers</h3>
-            <div className="mt-2">
-              <div className="flex gap-2">
-                <input value={newCgName} onChange={(e) => setNewCgName(e.target.value)} placeholder="Caregiver name" className="p-2 border rounded flex-1" />
-                <Button onClick={() => { if (!newCgName.trim()) return; const c = { id: String(Date.now()), name: newCgName.trim() }; addCaregiver(c); setCaregivers(getCaregivers()); setNewCgName(''); }}>Add</Button>
-              </div>
-              <div className="mt-3 space-y-2">
-                {caregivers.length === 0 && <div className="text-sm text-muted-foreground">No caregivers added</div>}
-                {caregivers.map((c) => (
-                  <div key={c.id} className="p-2 border rounded flex items-center justify-between">
-                    <div>{c.name} {c.relation ? `• ${c.relation}` : ''}</div>
-                  </div>
-                ))}
+      {/* Last Assessment Results */}
+      {history.length > 0 && (
+        <div className="last-assessment-section">
+          <div className="assessment-card">
+            <div className="assessment-header">
+              <h3>Your Last Assessment</h3>
+              <div className="assessment-date">
+                {new Date(history[0].timestamp).toLocaleDateString()}
               </div>
             </div>
+            <div className="assessment-result">
+              <div className="result-recommendation">
+                <span className="result-type">{history[0].result.replace('_', ' ')}</span>
+                {(history[0] as any).urgencyLevel && (
+                  <span className="urgency-badge" style={{
+                    backgroundColor: 
+                      (history[0] as any).urgencyLevel === 'Critical' ? '#ef4444' :
+                      (history[0] as any).urgencyLevel === 'High' ? '#f59e0b' :
+                      (history[0] as any).urgencyLevel === 'Medium' ? '#10b981' : '#6b7280'
+                  }}>
+                    {(history[0] as any).urgencyLevel}
+                  </span>
+                )}
+              </div>
+              <div className="result-summary">{history[0].summary}</div>
+              <div className="result-confidence">
+                Confidence: {history[0].confidence}%
+              </div>
+            </div>
+            <button 
+              className="secondary-btn"
+              onClick={() => setShowEnhancedTriage(true)}
+            >
+              New Assessment
+            </button>
           </div>
-          
-          <div className="p-4 bg-card rounded border">
-            <h3 className="text-lg font-semibold">Appointments</h3>
-            <div className="mt-2 space-y-2">
-              {appointments.length === 0 && <div className="text-sm text-muted-foreground">No upcoming appointments</div>}
-              {appointments.map((a) => (
-                <div key={a.id} className="p-2 border rounded flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{a.specialty} • {new Date(a.time).toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">{a.location ?? 'Demo Clinic'} • {a.status}</div>
-                  </div>
-                </div>
-              ))}
+        </div>
+      )}
+
+      {/* How It Works */}
+      <div className="how-it-works-section">
+        <h3>How Our AI Triage Works</h3>
+        <div className="steps-grid">
+          <div className="step-item">
+            <div className="step-number">1</div>
+            <div className="step-content">
+              <h4>Describe Symptoms</h4>
+              <p>Tell us about your symptoms, pain level, and duration</p>
             </div>
           </div>
-
-          <div className="p-4 bg-card rounded border">
-            <h3 className="text-lg font-semibold">Notifications</h3>
-            <div className="mt-2 space-y-2">
-              {notifications.length === 0 && <div className="text-sm text-muted-foreground">No notifications</div>}
-              {notifications.map((n) => (
-                <div key={n.id} className="p-2 border rounded">
-                  <div className="font-medium">{n.title}</div>
-                  <div className="text-xs text-muted-foreground">{n.message}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(n.ts).toLocaleString()}</div>
-                </div>
-              ))}
+          <div className="step-item">
+            <div className="step-number">2</div>
+            <div className="step-content">
+              <h4>AI Analysis</h4>
+              <p>Our AI analyzes your symptoms using medical algorithms</p>
+            </div>
+          </div>
+          <div className="step-item">
+            <div className="step-number">3</div>
+            <div className="step-content">
+              <h4>Get Recommendation</h4>
+              <p>Receive personalized care recommendations and next steps</p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </>
+  );
+
+  const renderHistoryContent = () => (
+    <div className="tab-content">
+      <h2 className="tab-title">Triage History</h2>
+      <FollowUpReminders />
+      <div className="history-section" style={{marginTop: '20px'}}>
+        <div className="card">
+          <div className="card-header">
+            <h2 className="card-title">Assessment History</h2>
+          </div>
+          {history.length === 0 && (
+            <div className="empty-state">
+              <div className="empty-state-icon">📊</div>
+              <div>No history yet</div>
+            </div>
+          )}
+          {history.map((h) => (
+            <div key={h.id} className="history-item">
+              <div className="history-content">
+                <div className="history-title">
+                  {h.result} • {h.summary}
+                  {(h as any).severity && (
+                    <span className="severity-badge" style={{backgroundColor: getSeverityColor((h as any).severity)}}>
+                      {(h as any).severity}/10
+                    </span>
+                  )}
+                </div>
+                <div className="history-meta">
+                  {new Date(h.timestamp).toLocaleString()} • Confidence {h.confidence}%
+                  {(h as any).hasPhotos && <span className="feature-badge">📷</span>}
+                  {(h as any).hasVoiceNote && <span className="feature-badge">🎤</span>}
+                  {(h as any).followUpDate && <span className="feature-badge">📅</span>}
+                </div>
+              </div>
+              <button className="history-action" onClick={() => { 
+                const entry = { id: String(Date.now()), timestamp: new Date().toISOString(), summary: h.summary, result: h.result, confidence: h.confidence, raw: h.raw }; 
+                pushTriage(entry); 
+                setHistory(getTriageHistory()); 
+                alert('Re-run saved'); 
+              }}>Re-run</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCareContent = () => (
+    <div className="tab-content">
+      <h2 className="tab-title">Healthcare Services</h2>
+      <div className="care-grid">
+        <div className="care-item" onClick={() => setActiveTab('telehealth')}>
+          <div className="care-icon">📹</div>
+          <h3>Telehealth</h3>
+          <p>Video consultations with doctors</p>
+        </div>
+        <div className="care-item" onClick={() => setActiveTab('pharmacy')}>
+          <div className="care-icon">💊</div>
+          <h3>Pharmacy</h3>
+          <p>Prescription management</p>
+        </div>
+        <div className="care-item" onClick={() => setShowBooking(true)}>
+          <div className="care-icon">📅</div>
+          <h3>Appointments</h3>
+          <p>Schedule medical visits</p>
+        </div>
+        <div className="care-item" onClick={() => setActiveTab('insurance')}>
+          <div className="care-icon">🛡️</div>
+          <h3>Insurance</h3>
+          <p>Claims and coverage</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="user-dashboard has-bottom-nav">
+        {/* Top Header */}
+        <header className="top-header">
+          <div className="header-content">
+            <div className="header-left">
+              <span className="header-title">ER Quick</span>
+            </div>
+            <div className="header-right">
+              <button onClick={() => navigate('/admin')} className="admin-btn">
+                Admin
+              </button>
+            </div>
+          </div>
+        </header>
+        
+        <main className="main-content">
+          {renderTabContent()}
+        </main>
+      </div>
+      
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
+      
       {showTriage && <TriageForm onClose={() => setShowTriage(false)} />}
+      {showEnhancedTriage && <EnhancedTriageForm onClose={() => setShowEnhancedTriage(false)} />}
       {showBooking && <BookingModal onClose={() => setShowBooking(false)} onBooked={() => { /* could notify */ }} />}
     </>
   );

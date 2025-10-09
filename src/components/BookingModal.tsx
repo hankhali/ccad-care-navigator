@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { saveAppointment, getAppointments, verifyInsurance, sendSmsFallback, getUaeUser, notifyCaregiversForEvent } from '@/lib/utils'
-import { toast } from '@/components/ui/use-toast'
+import { saveAppointment, getAppointments, verifyInsurance, sendSmsFallback, getUaeUser } from '@/lib/utils'
 
 interface BookingModalProps {
   onClose?: () => void
@@ -44,13 +43,12 @@ export default function BookingModal({ onClose, onBooked }: BookingModalProps) {
     // if offline, create SMS fallback record
     if (!isOnline) {
       sendSmsFallback('+97100000000', `Please confirm your appointment for ${specialty} at ${new Date(time).toLocaleString()}`)
-      toast({ title: 'Offline: SMS queued', description: 'An SMS fallback entry was queued and the appointment is pending.' })
+      alert('You appear offline. An SMS fallback entry was queued. The appointment is pending.');
     }
     try { window.dispatchEvent(new CustomEvent('appointment:created', { detail: appt })) } catch {}
     if (onBooked) onBooked(appt)
     if (onClose) onClose()
-    try { notifyCaregiversForEvent('appointment', appt) } catch {}
-    toast({ title: 'Appointment booked', description: `${specialty} at ${new Date(time).toLocaleString()}` })
+    alert('Appointment booked: ' + specialty + ' at ' + new Date(time).toLocaleString())
   }
 
   return (

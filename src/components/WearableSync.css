@@ -1,0 +1,410 @@
+/* Wearable Sync Styles */
+.wearable-sync-container {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.wearable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.wearable-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f2937;
+}
+
+.wearable-title h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.add-device-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #006a52 0%, #007b5f 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-device-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 106, 82, 0.25);
+}
+
+.wearable-content {
+  padding: 18px;
+}
+
+/* Add Device Panel */
+.add-device-panel {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.add-device-panel h4 {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.device-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.device-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background: white;
+  border: 1.5px solid #d1fae5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  color: #065f46;
+}
+
+.device-option:hover {
+  border-color: #006a52;
+  background: #ecfdf5;
+}
+
+.device-icon {
+  font-size: 20px;
+}
+
+/* Devices Section */
+.devices-section {
+  margin-bottom: 20px;
+}
+
+.devices-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.devices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.device-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  transition: all 0.2s;
+}
+
+.device-item.connected {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.device-item.disconnected {
+  border-color: #ef4444;
+  background: #fef2f2;
+  opacity: 0.8;
+}
+
+.device-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.device-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.device-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.device-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.battery-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.battery-icon {
+  width: 20px;
+  height: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 2px;
+  position: relative;
+  background: #f3f4f6;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 2px;
+  width: 2px;
+  height: 6px;
+  background: #d1d5db;
+  border-radius: 0 1px 1px 0;
+}
+
+.battery-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #22c55e);
+  border-radius: 1px;
+  transition: width 0.3s;
+}
+
+.device-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.connect-btn,
+.disconnect-btn,
+.remove-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.connect-btn {
+  background: #10b981;
+  color: white;
+}
+
+.connect-btn:hover {
+  background: #059669;
+}
+
+.disconnect-btn {
+  background: #f59e0b;
+  color: white;
+}
+
+.disconnect-btn:hover {
+  background: #d97706;
+}
+
+.remove-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.remove-btn:hover {
+  background: #dc2626;
+}
+
+/* Metrics Section */
+.metrics-section {
+  margin-top: 20px;
+}
+
+.metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.metrics-header h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.sync-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: white;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sync-btn:hover:not(:disabled) {
+  border-color: #006a52;
+  background: #f0fdf4;
+}
+
+.sync-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sync-btn.loading {
+  border-color: #006a52;
+  background: #f0fdf4;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.metric-card:hover {
+  border-color: #006a52;
+  background: #f0fdf4;
+}
+
+.metric-icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.metric-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.no-metrics,
+.empty-wearables {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-metrics svg,
+.empty-wearables svg {
+  color: #d1d5db;
+  margin-bottom: 12px;
+}
+
+.no-metrics p,
+.empty-wearables p {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #374151;
+}
+
+.no-metrics small,
+.empty-wearables small {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .wearable-header {
+    padding: 14px 16px;
+  }
+
+  .wearable-content {
+    padding: 16px;
+  }
+
+  .device-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .device-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .device-actions {
+    align-self: stretch;
+  }
+
+  .connect-btn,
+  .disconnect-btn,
+  .remove-btn {
+    flex: 1;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metrics-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+}

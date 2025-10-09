@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { MessageSquare, X } from "lucide-react";
 
 type Msg = { id: string; from: "user" | "bot"; text: string; ts: string };
-import { notifyCaregiversForEvent } from '@/lib/utils'
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -64,7 +63,6 @@ export default function ChatWidget() {
         try { window.dispatchEvent(new CustomEvent('triage:created', { detail: entry })) } catch {}
         // also persist to localStorage directly
         try { const cur = localStorage.getItem('triageHistory'); const arr = cur ? JSON.parse(cur) : []; arr.unshift(entry); localStorage.setItem('triageHistory', JSON.stringify(arr.slice(0,50))); } catch {}
-        try { notifyCaregiversForEvent('triage', entry) } catch {}
         const botMsg: Msg = { id: String(Date.now() + 2), from: 'bot', text: 'Saved triage from chat. Check your Triage History.', ts: new Date().toISOString() };
         push(botMsg);
       }
@@ -74,7 +72,7 @@ export default function ChatWidget() {
   return (
     <div>
       {/* Floating button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-24 right-6 z-50">
         {!open && (
           <button onClick={() => setOpen(true)} className="w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center text-white">
             <MessageSquare className="w-6 h-6" />

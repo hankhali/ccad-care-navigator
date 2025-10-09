@@ -1,0 +1,479 @@
+/* Telehealth Styles */
+.telehealth-container {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.telehealth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.telehealth-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f2937;
+}
+
+.telehealth-title h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.upcoming-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tabs */
+.telehealth-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.tab-btn.active {
+  color: #006a52;
+  border-bottom-color: #006a52;
+  background: white;
+}
+
+.tab-btn.in-call {
+  color: #ef4444;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.telehealth-content {
+  padding: 18px;
+}
+
+/* Appointments */
+.upcoming-section {
+  margin-bottom: 24px;
+}
+
+.upcoming-section h4,
+.all-appointments-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.appointment-item:hover {
+  border-color: #006a52;
+  box-shadow: 0 2px 8px rgba(0, 106, 82, 0.1);
+}
+
+.appointment-item.upcoming {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.appointment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appointment-doctor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.specialty {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 10px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.appointment-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.appointment-notes,
+.appointment-prescription {
+  font-size: 13px;
+  color: #374151;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.appointment-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.join-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.join-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Doctors */
+.doctors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doctor-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  transition: all 0.2s;
+}
+
+.doctor-card:hover {
+  border-color: #006a52;
+  box-shadow: 0 2px 8px rgba(0, 106, 82, 0.1);
+}
+
+.doctor-info {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.doctor-avatar {
+  font-size: 48px;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 50%;
+}
+
+.doctor-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.doctor-specialty {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.doctor-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.rating {
+  color: #f59e0b;
+}
+
+.doctor-languages {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.consultation-fee {
+  font-size: 14px;
+  font-weight: 600;
+  color: #006a52;
+}
+
+.doctor-availability h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.time-slots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.time-slot {
+  padding: 8px 12px;
+  background: white;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-slot:hover {
+  border-color: #006a52;
+  background: #f0fdf4;
+  color: #006a52;
+}
+
+/* Video Call Interface */
+.consultation-section {
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-call-interface {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1f2937;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-area {
+  flex: 1;
+  position: relative;
+  background: #111827;
+}
+
+.doctor-video {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-video {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 150px;
+  height: 100px;
+  background: #374151;
+  border-radius: 8px;
+  border: 2px solid #006a52;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: white;
+  gap: 12px;
+}
+
+.video-placeholder.small {
+  gap: 4px;
+}
+
+.video-placeholder span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.video-placeholder.small span {
+  font-size: 12px;
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  background: #374151;
+}
+
+.control-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #6b7280;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn:hover {
+  background: #9ca3af;
+  transform: scale(1.1);
+}
+
+.control-btn.muted,
+.control-btn.disabled {
+  background: #ef4444;
+}
+
+.control-btn.end-call {
+  background: #ef4444;
+}
+
+.control-btn.end-call:hover {
+  background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .appointment-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .doctor-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .doctor-avatar {
+    align-self: center;
+  }
+
+  .time-slots {
+    justify-content: center;
+  }
+
+  .patient-video {
+    width: 120px;
+    height: 80px;
+    top: 12px;
+    right: 12px;
+  }
+
+  .call-controls {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .control-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .telehealth-content {
+    padding: 16px;
+  }
+
+  .appointment-item {
+    padding: 14px;
+  }
+
+  .doctor-card {
+    padding: 16px;
+  }
+
+  .consultation-section {
+    height: 400px;
+  }
+
+  .video-placeholder {
+    gap: 8px;
+  }
+
+  .video-placeholder span {
+    font-size: 12px;
+  }
+}
